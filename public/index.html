@@ -1,1 +1,79 @@
-public/index.html
+
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#101827">
+  <title>MADARA_BOT | رمز الربط</title>
+  <style>
+    *{box-sizing:border-box}body{margin:0;min-height:100vh;background:linear-gradient(140deg,#101827,#172554);color:#f8fafc;font-family:system-ui,-apple-system,"Segoe UI",sans-serif;display:grid;place-items:center;padding:20px}
+    .card{width:min(100%,460px);background:#111c2f;border:1px solid #334155;border-radius:24px;padding:28px;box-shadow:0 20px 60px #0005}
+    .logo{width:64px;height:64px;margin:0 auto 12px;border-radius:20px;background:#16a34a;display:grid;place-items:center;font-size:30px;font-weight:800}
+    h1{text-align:center;margin:0 0 8px;font-size:25px}.sub{text-align:center;color:#cbd5e1;margin:0 0 24px;line-height:1.7}
+    label{display:block;margin-bottom:8px;font-weight:700}input{width:100%;padding:14px;border-radius:12px;border:1px solid #475569;background:#0b1220;color:white;font-size:17px;outline:none}input:focus{border-color:#22c55e}
+    button{width:100%;margin-top:14px;padding:14px;border:0;border-radius:12px;background:#16a34a;color:white;font-size:17px;font-weight:800;cursor:pointer}button:disabled{opacity:.6;cursor:wait}
+    .result{display:none;margin-top:18px;padding:16px;border-radius:14px;background:#0b1220;text-align:center}.code{font-size:30px;letter-spacing:5px;font-weight:900;color:#86efac;direction:ltr;display:block;margin:8px 0}
+    .status{white-space:pre-wrap;line-height:1.8;color:#e2e8f0;margin-top:14px}.warn{font-size:13px;color:#fbbf24;line-height:1.8;margin-top:18px}.steps{font-size:14px;color:#cbd5e1;line-height:1.9;margin-top:18px}
+  </style>
+</head>
+<body>
+  <main class="card">
+    <div class="logo">M</div>
+    <h1>MADARA_BOT</h1>
+    <p class="sub">توليد رمز ربط واتساب</p>
+    <form id="form">
+      <label for="phone">رقم هاتفك مع مفتاح الدولة</label>
+      <input id="phone" name="phone" type="tel" inputmode="numeric" autocomplete="tel" placeholder="مثال: 9665XXXXXXXX" required>
+      <button id="submit" type="submit">توليد رمز الربط</button>
+    </form>
+    <div id="result" class="result">
+      <div>رمز الربط الخاص بك</div>
+      <span id="code" class="code"></span>
+      <button id="copy" type="button">نسخ الرمز</button>
+    </div>
+    <div id="status" class="status" role="status"></div>
+    <div class="steps">بعد ظهور الرمز: افتح واتساب على هاتفك ← الأجهزة المرتبطة ← ربط جهاز ← الربط باستخدام رقم الهاتف، ثم أدخل الرمز.</div>
+    <div class="warn">استخدم هذه الصفحة مع رقمك وحسابك فقط. لا تشارك رمز الربط مع أي شخص؛ من يحصل عليه قد يتمكن من ربط جهاز بحسابك.</div>
+  </main>
+  <script>
+    const form = document.querySelector('#form')
+    const button = document.querySelector('#submit')
+    const statusBox = document.querySelector('#status')
+    const result = document.querySelector('#result')
+    const codeBox = document.querySelector('#code')
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault()
+      button.disabled = true
+      button.textContent = 'جارٍ توليد الرمز...'
+      statusBox.textContent = 'قد يستغرق الأمر عدة ثوانٍ.'
+      result.style.display = 'none'
+      try {
+        const response = await fetch('/api/pair', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ phone: document.querySelector('#phone').value })
+        })
+        const data = await response.json()
+        if (!response.ok) throw new Error(data.error || 'حدث خطأ أثناء توليد الرمز.')
+        codeBox.textContent = data.code
+        result.style.display = 'block'
+        statusBox.textContent = data.message || 'تم إنشاء الرمز.'
+      } catch (error) {
+        statusBox.textContent = error.message || 'تعذر الاتصال بالخادم.'
+      } finally {
+        button.disabled = false
+        button.textContent = 'توليد رمز الربط'
+      }
+    })
+    document.querySelector('#copy').addEventListener('click', async () => {
+      try {
+        await navigator.clipboard.writeText(codeBox.textContent)
+        statusBox.textContent = 'تم نسخ الرمز.'
+      } catch {
+        statusBox.textContent = 'تعذر النسخ تلقائيًا؛ انسخ الرمز يدويًا.'
+      }
+    })
+  </script>
+</body>
+</html>
