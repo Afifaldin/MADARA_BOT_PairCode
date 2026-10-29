@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: madara-bot-paircode
+    runtime: node
+    plan: starter
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /health
+    disk:
+      name: madara-paircode-auth
+      mountPath: /data
+      sizeGB: 1
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: AUTH_DIR
+        value: /data/auth_info
